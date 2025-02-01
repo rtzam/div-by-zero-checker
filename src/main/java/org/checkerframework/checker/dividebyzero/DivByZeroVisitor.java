@@ -29,7 +29,20 @@ public class DivByZeroVisitor extends BaseTypeVisitor<DivByZeroAnnotatedTypeFact
   private boolean errorAt(BinaryTree node) {
     // A BinaryTree can represent any binary operator, including + or -.
     // TODO
-    return false;
+    switch (node.getKind()) {
+      case DIVIDE:
+      case REMAINDER:
+        // System.out.println(node.toString());
+        Tree rhsValue = node.getRightOperand();
+        boolean maybeTop = hasAnnotation(rhsValue, Top.class);
+        boolean maybeZero = hasAnnotation(rhsValue, Zero.class);
+        // AnnotationMirror annoType = getTypeFactory().getAnnotatedType(rhsValue).getPrimaryAnnotation();
+        // DeclaredType theType = annoType.getAnnotationType();
+        // System.out.println(theType.toString());        
+        return maybeTop || maybeZero;
+      default:
+        return false;
+    }
   }
 
   /**
@@ -42,8 +55,20 @@ public class DivByZeroVisitor extends BaseTypeVisitor<DivByZeroAnnotatedTypeFact
   private boolean errorAt(CompoundAssignmentTree node) {
     // A CompoundAssignmentTree represents any binary operator combined with an assignment,
     // such as "x += 10".
-    // TODO
-    return false;
+    switch (node.getKind()) {
+      case DIVIDE_ASSIGNMENT:
+      case REMAINDER_ASSIGNMENT:
+        // System.out.println(node.toString());
+        Tree rhsValue = node.getExpression();
+        boolean maybeTop = hasAnnotation(rhsValue, Top.class);
+        boolean maybeZero = hasAnnotation(rhsValue, Zero.class);
+        // AnnotationMirror annoType = getTypeFactory().getAnnotatedType(rhsValue).getPrimaryAnnotation();
+        // DeclaredType theType = annoType.getAnnotationType();
+        // System.out.println(theType.toString());        
+        return maybeTop || maybeZero;
+      default:
+        return false;
+    }
   }
 
   // ========================================================================

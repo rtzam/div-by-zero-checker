@@ -76,7 +76,77 @@ public class DivByZeroTransfer extends CFTransfer {
    */
   private AnnotationMirror refineLhsOfComparison(
       Comparison operator, AnnotationMirror lhs, AnnotationMirror rhs) {
-    // TODO
+    
+    AnnotationMirror zero = reflect(Zero.class);
+    AnnotationMirror notZero = reflect(NotZero.class);
+    AnnotationMirror pos = reflect(Pos.class);
+    AnnotationMirror neg = reflect(Neg.class);
+
+    switch (operator) {
+      case EQ:
+        return rhs;
+      case NE:
+
+        if (equal(rhs, zero)){
+          return notZero;
+        } else if (equal(rhs, notZero)){
+          return zero;
+        } else {
+          return top();
+        }
+      
+      case LT:
+        if (equal(rhs, zero)){
+          return neg;
+        } else if (equal(rhs, notZero)){
+          return top();
+        } else if (equal(rhs, neg)) {
+          return neg;
+        } else if (equal(rhs, pos)){
+          return top();
+        }
+        break;
+
+      case LE:
+        if (equal(rhs, zero)){
+          return top();
+        } else if (equal(rhs, notZero)){
+          return top();
+        } else if (equal(rhs, neg)) {
+          return neg;
+        } else if (equal(rhs, pos)){
+          return top();
+        }
+        break;
+
+      case GT:
+        if (equal(rhs, zero)){
+          return pos;
+        } else if (equal(rhs, notZero)){
+          return top();
+        } else if (equal(rhs, neg)) {
+          return top();
+        } else if (equal(rhs, pos)){
+          return pos;
+        }
+        break;
+
+      case GE:
+        if (equal(rhs, zero)){
+          return top();
+        } else if (equal(rhs, notZero)){
+          return top();
+        } else if (equal(rhs, neg)) {
+          return top();
+        } else if (equal(rhs, pos)){
+          return pos;
+        }
+        break;
+        
+      default:
+        break;
+    }
+
     return lhs;
   }
 
@@ -95,10 +165,142 @@ public class DivByZeroTransfer extends CFTransfer {
    * @param rhs the lattice point for the right-hand side of the expression
    * @return the lattice point for the result of the expression
    */
-  private AnnotationMirror arithmeticTransfer(
-      BinaryOperator operator, AnnotationMirror lhs, AnnotationMirror rhs) {
-    // TODO
-    return top();
+  private AnnotationMirror arithmeticTransfer(BinaryOperator operator, AnnotationMirror lhs, AnnotationMirror rhs) {
+    // AnnotationMirror top = top();
+    AnnotationMirror zero = reflect(Zero.class);
+    AnnotationMirror notZero = reflect(NotZero.class);
+    AnnotationMirror pos = reflect(Pos.class);
+    AnnotationMirror neg = reflect(Neg.class);
+
+    switch (operator) {
+      case PLUS:
+        if (equal(lhs, top())) {
+          return top();
+        } else if (equal(rhs, top())) {
+          return top();
+        } else if (equal(lhs, zero)) {
+          return rhs;
+        } else if (equal(rhs, zero)) {
+          return lhs;
+        } else if (equal(lhs, notZero)){
+          return top();
+        } else if (equal(rhs, notZero)){
+          return top();
+        } else if (equal(lhs, pos)) {
+          if (equal(rhs, pos)) {
+            return pos;
+          } else if (equal(rhs, neg)) {
+            return top();
+          } else {
+            return bottom();
+          }
+        } else if (equal(lhs, neg)) {
+          if (equal(rhs, pos)) {
+            return top();
+          } else if (equal(rhs, neg)) {
+            return neg;
+          } else{
+            return bottom();
+          }
+        } else {
+          return bottom();
+        }
+      case MINUS:
+        AnnotationMirror newRhs = arithmeticTransfer(BinaryOperator.TIMES, neg, rhs);
+        return arithmeticTransfer(BinaryOperator.PLUS, lhs, newRhs);
+      case TIMES:
+        if (equal(lhs, top())) {
+          return top();
+        } else if (equal(rhs, top())) {
+          return top();
+        } else if (equal(lhs, zero)) {
+          return zero;
+        } else if (equal(rhs, zero)) {
+          return zero;
+        } else if (equal(lhs, notZero)){
+          return notZero;
+        } else if (equal(rhs, notZero)){
+          return notZero;
+        } else if (equal(lhs, pos)) {
+          if (equal(rhs, pos)) {
+            return pos;
+          } else if (equal(rhs, neg)) {
+            return neg;
+          } else {
+            return bottom();
+          }
+        } else if (equal(lhs, neg)) {
+          if (equal(rhs, pos)) {
+            return neg;
+          } else if (equal(rhs, neg)) {
+            return pos;
+          } else{
+            return bottom();
+          }
+        } else {
+          return bottom();
+        }
+      
+      case DIVIDE:
+        if (equal(lhs, top())) {
+          return top();
+        } else if (equal(rhs, top())) {
+          return top();
+        } else if (equal(lhs, zero)) {
+          if (equal(rhs, zero)){
+            return top();
+          } else {
+            return zero;
+          }
+        } else if (equal(rhs, zero)) {
+          return top();
+        } else if (equal(lhs, notZero)){
+          return notZero;
+        } else if (equal(rhs, notZero)){
+          return notZero;
+        } else if (equal(lhs, pos)) {
+          if (equal(rhs, pos)) {
+            return pos;
+          } else if (equal(rhs, neg)) {
+            return neg;
+          } else {
+            return bottom();
+          }
+        } else if (equal(lhs, neg)) {
+          if (equal(rhs, pos)) {
+            return neg;
+          } else if (equal(rhs, neg)) {
+            return pos;
+          } else{
+            return bottom();
+          }
+        } else {
+          return bottom();
+        }
+
+      case MOD:
+        if (equal(lhs, top())) {
+          return top();
+        } else if (equal(rhs, top())) {
+          return top();
+        } else if (equal(lhs, zero)) {
+          if (equal(rhs, zero)){
+            return top();
+          } else {
+            return zero;
+          }
+        } else if (equal(rhs, zero)) {
+          return top();
+        } else if (equal(lhs, bottom())){
+          return lhs;
+        } else if (equal(rhs, bottom())){
+          return bottom();
+        } else {
+          return top();
+        }
+      default:
+        return top();
+    }
   }
 
   // ========================================================================
